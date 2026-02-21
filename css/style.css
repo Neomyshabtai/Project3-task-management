@@ -1,0 +1,127 @@
+/* עיצוב כללי */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f2f5;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* כרטיסיית כניסה ורישום */
+.auth-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 350px;
+    text-align: center;
+}
+
+h2 { color: #1c1e21; margin-bottom: 1.5rem; }
+
+.input-group {
+    text-align: right;
+    margin-bottom: 1rem;
+}
+
+label { display: block; margin-bottom: 5px; font-size: 0.9rem; color: #606770; }
+
+input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #dddfe2;
+    border-radius: 6px;
+    box-sizing: border-box;
+}
+
+input:focus { border-color: #1877f2; outline: none; }
+
+.primary-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: #1877f2;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.primary-btn:disabled { background-color: #a2c4f1; cursor: not-allowed; }
+
+.switch-auth { margin-top: 1rem; font-size: 0.9rem; }
+
+.switch-auth span { color: #1877f2; cursor: pointer; text-decoration: underline; }
+
+/* עיצוב עמוד ראשי */
+.main-layout { 
+    width: 90%; 
+    max-width: 800px; 
+    background: white; 
+    border-radius: 8px; 
+    overflow: hidden; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* הוספתי צל גם כאן */
+}
+
+header {
+    background: #1877f2;
+    color: white;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* טיפול בשם משתמש ארוך */
+.user-info { 
+    font-size: 0.9rem; 
+    display: flex;
+    align-items: center;
+    max-width: 60%; /* מגביל את האזור של השם כדי לא לחנוק את הכותרת */
+}
+
+#user-display-name {
+    display: inline-block;
+    max-width: 150px; /* השם יחתך אחרי בערך 15-20 תווים בתצוגה */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* מוסיף ... בסוף */
+    margin: 0 5px;
+    vertical-align: bottom;
+}
+
+.logout-link {
+    background: none;
+    border: 1px solid white;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.logout-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+main { padding: 2rem; }
+
+.content-card {
+    border: 1px dashed #ccc;
+    padding: 2rem;
+    text-align: center;
+    color: #888;
+}
+
+/* כפתור כניסה כחול */
+.login-style .primary-btn { background-color: #1877f2; }
+
+/* כפתור רישום ירוק */
+.register-style .primary-btn { background-color: #42b72a; }
+
+/* הוספת מרווחים לשדות כדי שהרישום ייראה ארוך יותר */
+.register-style input { margin-bottom: 8px; }

@@ -5,71 +5,67 @@
 // Network (הכביש המשובש) לאחר השהיה אקראית.
 
 // שרת האימות - אחראי על רישום וכניסה
-const authServer = {
-    
-    // פונקציית רישום משתמש חדש
-    register: function(requestData) {
-        // 1. פירוק הנתונים שהגיעו מהלקוח (בפורמט JSON)
-        const { username, password } = JSON.parse(requestData);
+class AuthServer {
+    // פונקציית ניתוב - היא מקבלת אובייקט request מה-Network
+    static handleRequest(request) {
+        const { url, method, body } = request;
 
-        // 2. בדיקת תקינות בסיסית (ולידציה)
-        if (!username || !password) {
-            return JSON.stringify({
-                status: 400,
-                message: "שגיאה: שם משתמש וסיסמה הם שדות חובה"
-            });
+        if (url === '/auth/register' && method === 'POST') {
+            return this.register(body);
+        }
+        if (url === '/auth/login' && method === 'POST') {
+            return this.login(body);
         }
 
-        // 3. בדיקה האם המשתמש כבר קיים במאגר (מניעת כפילויות)
-        const existingUsers = usersDB.getByProperty('username', username);
-        if (existingUsers.length > 0) {
-            return JSON.stringify({
-                status: 409,
-                message: "שגיאה: שם המשתמש כבר תפוס"
-            });
-        }
-
-        // 4. שמירת המשתמש החדש במאגר דרך ה-DB-API
-        const newUser = usersDB.add({ username, password });
-
-        // 5. החזרת תגובת הצלחה ללקוח
-        return JSON.stringify({
-            status: 201,
-            message: "הרישום בוצע בהצלחה!",
-            user: { id: newUser.id, username: newUser.username }
-        });
-    },
-    
-    // פונקציית כניסה למערכת
-    login: function(requestData) {
-        // 1. פירוק הנתונים שהגיעו מהלקוח [cite: 306, 430]
-        const { username, password } = JSON.parse(requestData);
-
-        // 2. חיפוש המשתמש במאגר המידע לפי שם המשתמש [cite: 393, 443]
-        const users = usersDB.getByProperty('username', username);
-        const user = users[0]; // מחזיר את המשתמש הראשון שנמצא
-
-        // 3. בדיקה - האם המשתמש בכלל קיים? 
-        if (!user) {
-            return JSON.stringify({
-                status: 404,
-                message: "שגיאה: משתמש לא נמצא"
-            });
-        }
-
-        // 4. בדיקת התאמת סיסמה 
-        if (user.password !== password) {
-            return JSON.stringify({
-                status: 401,
-                message: "שגיאה: סיסמה שגויה"
-            });
-        }
-
-        // 5. אישור כניסה - מחזירים תגובה הכוללת את פרטי המשתמש (ללא הסיסמה!) [cite: 395, 430, 439]
-        return JSON.stringify({
-            status: 200,
-            message: "התחברת בהצלחה!",
-            user: { id: user.id, username: user.username }
-        });
+        return { status: 404, message: "נתיב לא נמצא בשרת האימות" };
     }
-};
+static register(requestData) {
+    const data = JSON.parse(requestData);
+    const { username, password, email } = data;
+
+    // 1. בדיקה שכל השדות הגיעו
+    if (!username || !password || !email) {
+        return { status: 400, message: "שגיאה: כל השדות חובה" };
+    }
+
+    // 2. בדיקה אם שם המשתמש תפוס (כבר קיים לך)
+    const existingUser = usersDB.getByProperty('username', username);
+    if (existingUser.length > 0) {
+        return { status: 409, message: "שגיאה: שם המשתמש כבר קיים" };
+    }
+
+    // 3. הבדיקה החדשה: האם המייל כבר קיים במערכת?
+    const existingEmail = usersDB.getByProperty('email', email);
+    if (existingEmail.length > 0) {
+        return { 
+            status: 409, 
+            message: "שגיאה: קיימת כבר הרשמה עם כתובת האימייל הזו" 
+        };
+    }
+
+    // 4. אם הכל בסדר - שומרים ב-DB
+    const newUser = usersDB.add({ username, password, email });
+    return { 
+        status: 201, 
+        message: "הרישום בוצע בהצלחה!", 
+        data: { id: newUser.id, username: newUser.username } 
+    };
+ }
+
+    static login(requestData) {
+        const { username, password } = JSON.parse(requestData);
+        const users = usersDB.getByProperty('username', username);
+        const user = users[0];
+
+        if (!user || user.password !== password) {
+            return { status: 401,
+                 message: "שם המשתמש או הסיסמה אינם תקינים" };
+        }
+
+        return { 
+            status: 200, 
+            message: "התחברת בהצלחה!", 
+            data: { id: user.id, username: user.username } 
+        };
+    }
+}
