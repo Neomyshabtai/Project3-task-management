@@ -58,31 +58,38 @@
         </div>
     </template>
 
-    <template id="main-app-template">
-        <div class="main-layout">
-            <header>
-                <div class="user-info">
-                    שלום, <strong id="user-display-name"></strong> 👋
+   <template id="main-app-template">
+    <div class="main-layout">
+        <header>
+            <div class="user-info">שלום, <strong id="user-display-name"></strong> 👋</div>
+            <button id="logout-btn" class="logout-link">התנתק</button>
+        </header>
+        <main id="tasks-container">
+            <div class="content-card">
+                <h3>המשימות שלי</h3>
+                
+                <form id="add-task-form" class="task-form">
+                    <input type="text" name="title" placeholder="מה המשימה הבאה שלך?" required>
+                    <button type="submit" class="add-btn">הוסף</button>
+                </form>
+
+                <div id="data-list">
+                    <p>טוען נתונים מהשרת...</p>
                 </div>
-                <button id="logout-btn" class="logout-link">התנתק</button>
-            </header>
-            <main id="tasks-container">
-                <div class="content-card">
-                    <h3>המשימות שלי</h3>
-                    <div id="data-list">
-                        <p>טוען נתונים מהשרת...</p>
-                    </div>
-                </div>
-            </main>
-        </div>
-    </template>
+            </div>
+        </main>
+    </div>
+</template>
 
     <script src="js/database.js"></script>
-    <script src="js/network.js"></script>
-    <script src="js/fajax.js"></script>
-    <script src="js/server-auth.js"></script>
-    <script src="js/server-app.js"></script>
-    <script src="js/app.js"></script>
 
+<script src="js/server-auth.js"></script>
+<script src="js/server-app.js"></script>
+
+<script src="js/network.js"></script>
+
+<script src="js/fajax.js"></script>
+
+<script src="js/app.js"></script>
 </body>
 </html>

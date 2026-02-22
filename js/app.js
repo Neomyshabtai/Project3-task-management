@@ -28,42 +28,31 @@ const App = {
         }
         if (templateId === 'main-app-template') {
             document.getElementById('logout-btn').onclick = () => this.handleLogout();
+            
+            // חיבור טופס הוספת משימה חדשה
+            const addForm = document.getElementById('add-task-form');
+            if (addForm) {
+                addForm.onsubmit = (e) => this.handleAddTask(e);
+            }
+
             if (this.currentUser) {
                 document.getElementById('user-display-name').innerText = this.currentUser.username;
+                this.fetchTasks(); // משיכת המשימות מהשרת ברגע שהעמוד נטען
             }
         }
     },
 
-    // --- 2. וולידציה (הפרדה בין כניסה להרשמה) ---
+    // --- 2. וולידציה ---
     validate(data, type) {
-        const uReg = /^[a-zA-Z0-9]{3,}$/; // שם משתמש: לפחות 3 תווים
-        const pReg = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/; // סיסמה: אות + מספר, לפחות 6
-        const eReg = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // פורמט אימייל בסיסי
+        const uReg = /^[a-zA-Z0-9]{3,}$/;
+        const pReg = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
+        const eReg = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         if (type === 'register') {
-            // בדיקות קפדניות להרשמה (עם הסברים למשתמש)
-            if (!uReg.test(data.username)) {
-                alert("שם המשתמש חייב להיות לפחות 3 תווים (אנגלית ומספרים).");
-                return false;
-            }
-            if (!eReg.test(data.email)) {
-                alert("כתובת האימייל אינה תקינה.");
-                return false;
-            }
-            if (!pReg.test(data.password)) {
-                alert("הסיסמה חייבת לכלול לפחות 6 תווים, אות אחת ומספר אחד.");
-                return false;
-            }
-            if (data.password !== data.confirmPassword) {
-                alert("הסיסמאות אינן תואמות.");
-                return false;
-            }
-        } else {
-            // בדיקה בסיסית לכניסה (לא חושפים חוקי פורמט לפורצים)
-            if (!data.username || !data.password) {
-                alert("יש להזין שם משתמש וסיסמה.");
-                return false;
-            }
+            if (!uReg.test(data.username)) { alert("שם משתמש לא תקין"); return false; }
+            if (!eReg.test(data.email)) { alert("אימייל לא תקין"); return false; }
+            if (!pReg.test(data.password)) { alert("סיסמה חלשה מדי"); return false; }
+            if (data.password !== data.confirmPassword) { alert("הסיסמאות לא תואמות"); return false; }
         }
         return true;
     },
@@ -80,60 +69,107 @@ const App = {
 
         fajax.onerror = () => {
             if (attempt < this.maxRetries) {
-                console.warn(`ניסיון ${attempt} נכשל, מנסה שוב בעוד שניה...`);
                 setTimeout(() => this.sendRequestWithRetry(method, url, data, onSuccess, attempt + 1), 1000);
             } else {
-                alert("שגיאת תקשורת: השרת לא מגיב לאחר מספר ניסיונות.");
+                alert("שגיאת תקשורת לאחר מספר ניסיונות.");
             }
         };
 
         fajax.send(JSON.stringify(data));
     },
 
-    // --- 4. טיפול בשליחת טפסים (Unified Handler) ---
+    // --- 4. ניהול משימות (החלק החדש) ---
+    
+    // משיכת משימות מהשרת
+    fetchTasks() {
+        const data = { userId: this.currentUser.id };
+        this.sendRequestWithRetry("GET", "/tasks", data, (res, status) => {
+            if (status === 200) {
+                this.renderTasks(res.data); // data מגיע מ-AppServer
+            }
+        });
+    },
+
+    // הצגת המשימות בתוך ה-HTML
+    renderTasks(tasks) {
+        const listContainer = document.getElementById('data-list');
+        if (!listContainer) return;
+
+        if (tasks.length === 0) {
+            listContainer.innerHTML = '<p>אין משימות. הגיע הזמן להוסיף אחת!</p>';
+            return;
+        }
+
+        listContainer.innerHTML = tasks.map(task => `
+            <div class="task-item ${task.completed ? 'task-done' : ''}">
+                <input type="checkbox" ${task.completed ? 'checked' : ''} 
+                       onchange="App.handleToggle('${task.id}', this.checked)">
+                <span>${task.title}</span>
+                <button class="delete-btn" onclick="App.handleDelete('${task.id}')">מחק</button>
+            </div>
+        `).join('');
+    },
+
+    handleAddTask(e) {
+        e.preventDefault();
+        const titleInput = e.target.querySelector('input[name="title"]');
+        const data = { 
+            userId: this.currentUser.id, 
+            title: titleInput.value 
+        };
+
+        this.sendRequestWithRetry("POST", "/tasks", data, (res, status) => {
+            if (status === 201) {
+                titleInput.value = ''; // ניקוי השדה
+                this.fetchTasks(); // רענון הרשימה
+            }
+        });
+    },
+
+    handleToggle(id, isCompleted) {
+        const data = { id: id, completed: isCompleted };
+        this.sendRequestWithRetry("POST", "/tasks/toggle", data, () => {
+            this.fetchTasks();
+        });
+    },
+
+    handleDelete(id) {
+        if (!confirm("למחוק את המשימה?")) return;
+        const data = { id: id };
+        this.sendRequestWithRetry("POST", "/tasks/delete", data, () => {
+            this.fetchTasks();
+        });
+    },
+
+    // --- 5. טיפול בטפסי כניסה/רישום ---
     handleSubmit(e, type) {
         e.preventDefault();
-        
-        // איסוף אוטומטי של כל השדות מהטופס
         const formData = new FormData(e.target);
         const data = Object.fromEntries(formData.entries());
 
-        // ביצוע וולידציה לפי סוג הטופס
         if (!this.validate(data, type)) return;
-
-        const btn = e.target.querySelector('button');
-        const originalText = btn.innerText;
-        btn.disabled = true;
-        btn.innerText = "...טוען";
 
         const url = type === 'login' ? '/auth/login' : '/auth/register';
 
         this.sendRequestWithRetry("POST", url, data, (res, status) => {
-            btn.disabled = false;
-            btn.innerText = originalText;
-
             if (status === 200 || status === 201) {
                 if (type === 'login') {
-                    this.currentUser = res.data;
+                    this.currentUser = res.data; // שמירת המשתמש המחובר
                     this.navigateTo('main-app-template');
                 } else {
                     alert(res.message);
                     this.navigateTo('login-template');
                 }
             } else {
-                // הודעת שגיאה מהשרת (כמו "שם משתמש או סיסמה לא נכונים")
                 alert(res.message);
             }
         });
     },
 
     handleLogout() {
-        if (confirm("האם ברצונך להתנתק?")) {
-            this.currentUser = null;
-            this.navigateTo('login-template');
-        }
+        this.currentUser = null;
+        this.navigateTo('login-template');
     }
 };
 
-// הפעלה ראשונית של עמוד הכניסה
 window.onload = () => App.navigateTo('login-template');
