@@ -20,8 +20,13 @@ class AppServer {
         if (url === '/tasks/delete' && method === 'POST') {
             return this.deleteTask(body);
         }
+        if (url === '/tasks/update' && method === 'PUT') { // שימי לב לשימוש ב-PUT לפי ההנחיות 
+            return this.updateTask(body);
+}
 
         return { status: 404, message: "נתיב לא נמצא בשרת האפליקציה" };
+
+        
     }
 
     // --- 2. שליפת משימות של משתמש ---
@@ -82,7 +87,21 @@ class AppServer {
         };
     }
 
-    // --- 5. מחיקת משימה ---
+     // --- 5. עדכון ועריכת משימה ---
+    static updateTask(requestData) {
+    const { id, title } = JSON.parse(requestData);
+    
+    // שימוש במתודת ה-update הקיימת ב-database.js
+    const updatedTask = tasksDB.update(id, { title: title });
+
+    if (!updatedTask) {
+        return { status: 404, message: "שגיאה: המשימה לא נמצאה לעדכון" };
+    }
+
+    return { status: 200, message: "המשימה עודכנה בהצלחה", data: updatedTask };
+}
+
+    // --- 6. מחיקת משימה ---
     static deleteTask(requestData) {
         const { id } = JSON.parse(requestData);
 

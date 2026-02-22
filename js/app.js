@@ -91,24 +91,52 @@ const App = {
     },
 
     // הצגת המשימות בתוך ה-HTML
-    renderTasks(tasks) {
-        const listContainer = document.getElementById('data-list');
-        if (!listContainer) return;
+   renderTasks(tasks) {
+    const listContainer = document.getElementById('data-list');
+    if (!listContainer) return;
 
-        if (tasks.length === 0) {
-            listContainer.innerHTML = '<p>אין משימות. הגיע הזמן להוסיף אחת!</p>';
-            return;
-        }
+    if (tasks.length === 0) {
+        listContainer.innerHTML = '<p>הכל נקי! אין משימות ממתינות.</p>';
+        return;
+    }
 
-        listContainer.innerHTML = tasks.map(task => `
-            <div class="task-item ${task.completed ? 'task-done' : ''}">
-                <input type="checkbox" ${task.completed ? 'checked' : ''} 
-                       onchange="App.handleToggle('${task.id}', this.checked)">
-                <span>${task.title}</span>
+    listContainer.innerHTML = tasks.map(task => `
+        <div class="task-item ${task.completed ? 'task-done' : ''}">
+            <input type="checkbox" class="task-checkbox" 
+                   ${task.completed ? 'checked' : ''} 
+                   onchange="App.handleToggle('${task.id}', this.checked)">
+            
+            <span class="task-text">${task.title}</span>
+            
+            <div class="task-actions">
+                <button class="edit-btn" 
+                        ${task.completed ? 'disabled' : ''} 
+                        onclick="App.handleEdit('${task.id}', '${task.title}')">
+                    ערוך
+                </button>
                 <button class="delete-btn" onclick="App.handleDelete('${task.id}')">מחק</button>
             </div>
-        `).join('');
-    },
+        </div>
+    `).join('');
+},
+
+   // הוסיפי את הפונקציה החדשה לאובייקט App
+handleEdit(id, currentTitle) {
+    const newTitle = prompt("ערוך את המשימה:", currentTitle);
+    
+    if (newTitle === null || newTitle.trim() === "" || newTitle === currentTitle) return;
+
+    const data = { id: id, title: newTitle };
+    
+    // שליחה בשיטת PUT כפי שנדרש בהנחיות 
+    this.sendRequestWithRetry("PUT", "/tasks/update", data, (res, status) => {
+        if (status === 200) {
+            this.fetchTasks(); // רענון הרשימה
+        } else {
+            alert(res.message);
+        }
+    });
+},
 
     handleAddTask(e) {
         e.preventDefault();
