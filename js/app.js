@@ -1,203 +1,181 @@
-const App = {
-    currentUser: null,
-    maxRetries: 3,
+class BaseComponent {
+    constructor() {
+        this.maxRetries = 3;
+    }
 
-    // --- 1. ניתוב (SPA Routing) ---
     navigateTo(templateId) {
         const appContainer = document.getElementById('app');
         const template = document.getElementById(templateId);
-        
-        if (!template) {
-            console.error("Template not found: " + templateId);
-            return;
-        }
-
+        if (!template) return;
         appContainer.innerHTML = ''; 
-        const clone = template.content.cloneNode(true);
-        appContainer.appendChild(clone);
-        
+        appContainer.appendChild(template.content.cloneNode(true));
         this.initEventListeners(templateId);
-    },
+    }
 
-    initEventListeners(templateId) {
-        if (templateId === 'register-template') {
-            document.getElementById('register-form').onsubmit = (e) => this.handleSubmit(e, 'register');
-        }
-        if (templateId === 'login-template') {
-            document.getElementById('login-form').onsubmit = (e) => this.handleSubmit(e, 'login');
-        }
-        if (templateId === 'main-app-template') {
-            document.getElementById('logout-btn').onclick = () => this.handleLogout();
-            
-            // חיבור טופס הוספת משימה חדשה
-            const addForm = document.getElementById('add-task-form');
-            if (addForm) {
-                addForm.onsubmit = (e) => this.handleAddTask(e);
-            }
+    // ניהול ה-Loader (Spinner)
+    toggleLoader(show) {
+        const loader = document.getElementById('loader');
+        if (show) loader.classList.replace('loader-hidden', 'loader-visible');
+        else loader.classList.replace('loader-visible', 'loader-hidden');
+    }
 
-            if (this.currentUser) {
-                document.getElementById('user-display-name').innerText = this.currentUser.username;
-                this.fetchTasks(); // משיכת המשימות מהשרת ברגע שהעמוד נטען
-            }
-        }
-    },
+    showModal(message) {
+        const modal = document.getElementById('custom-modal');
+        document.getElementById('modal-message').innerText = message;
+        modal.classList.replace('modal-hidden', 'modal-visible');
+    }
 
-    // --- 2. וולידציה ---
-    validate(data, type) {
-        const uReg = /^[a-zA-Z0-9]{3,}$/;
-        const pReg = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
-        const eReg = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    closeModal() {
+        document.getElementById('custom-modal').classList.replace('modal-visible', 'modal-hidden');
+    }
 
-        if (type === 'register') {
-            if (!uReg.test(data.username)) { alert("שם משתמש לא תקין"); return false; }
-            if (!eReg.test(data.email)) { alert("אימייל לא תקין"); return false; }
-            if (!pReg.test(data.password)) { alert("סיסמה חלשה מדי"); return false; }
-            if (data.password !== data.confirmPassword) { alert("הסיסמאות לא תואמות"); return false; }
-        }
-        return true;
-    },
+    sendRequest(method, url, data, onSuccess, attempt = 1) {
+        if (attempt === 1) this.toggleLoader(true);
 
-    // --- 3. מנגנון שליחה עם Retry ---
-    sendRequestWithRetry(method, url, data, onSuccess, attempt = 1) {
         const fajax = new FXMLHttpRequest();
         fajax.open(method, url);
 
         fajax.onload = () => {
-            const response = JSON.parse(fajax.responseText);
-            onSuccess(response, fajax.status);
+            this.toggleLoader(false);
+            onSuccess(JSON.parse(fajax.responseText), fajax.status);
         };
 
         fajax.onerror = () => {
             if (attempt < this.maxRetries) {
-                setTimeout(() => this.sendRequestWithRetry(method, url, data, onSuccess, attempt + 1), 1000);
+                setTimeout(() => this.sendRequest(method, url, data, onSuccess, attempt + 1), 1000);
             } else {
-                alert("שגיאת תקשורת לאחר מספר ניסיונות.");
+                this.toggleLoader(false);
+                this.showModal("שגיאת תקשורת לאחר מספר ניסיונות. ייתכן שיבוש ברשת.");
             }
         };
 
         fajax.send(JSON.stringify(data));
-    },
+    }
+}
 
-    // --- 4. ניהול משימות (החלק החדש) ---
-    
-    // משיכת משימות מהשרת
-    fetchTasks() {
-        const data = { userId: this.currentUser.id };
-        this.sendRequestWithRetry("GET", "/tasks", data, (res, status) => {
-            if (status === 200) {
-                this.renderTasks(res.data); // data מגיע מ-AppServer
-            }
-        });
-    },
-
-    // הצגת המשימות בתוך ה-HTML
-   renderTasks(tasks) {
-    const listContainer = document.getElementById('data-list');
-    if (!listContainer) return;
-
-    if (tasks.length === 0) {
-        listContainer.innerHTML = '<p>הכל נקי! אין משימות ממתינות.</p>';
-        return;
+class TaskManager extends BaseComponent {
+    constructor() {
+        super();
+        this.currentUser = null;
+        this.currentFilter = 'all';
     }
 
-    listContainer.innerHTML = tasks.map(task => `
-        <div class="task-item ${task.completed ? 'task-done' : ''}">
-            <input type="checkbox" class="task-checkbox" 
-                   ${task.completed ? 'checked' : ''} 
-                   onchange="App.handleToggle('${task.id}', this.checked)">
-            
-            <span class="task-text">${task.title}</span>
-            
-            <div class="task-actions">
-                <button class="edit-btn" 
-                        ${task.completed ? 'disabled' : ''} 
-                        onclick="App.handleEdit('${task.id}', '${task.title}')">
-                    ערוך
-                </button>
-                <button class="delete-btn" onclick="App.handleDelete('${task.id}')">מחק</button>
-            </div>
-        </div>
-    `).join('');
-},
+    initEventListeners(templateId) {
+    if (templateId === 'login-template' || templateId === 'register-template') {
+        new AuthManager(this).initEventListeners(templateId);
+    } else if (templateId === 'main-app-template') {
+        // התנתקות
+        document.getElementById('logout-btn').onclick = () => { 
+            this.currentUser = null; 
+            this.navigateTo('login-template'); 
+        };
 
-   // הוסיפי את הפונקציה החדשה לאובייקט App
-handleEdit(id, currentTitle) {
-    const newTitle = prompt("ערוך את המשימה:", currentTitle);
-    
-    if (newTitle === null || newTitle.trim() === "" || newTitle === currentTitle) return;
-
-    const data = { id: id, title: newTitle };
-    
-    // שליחה בשיטת PUT כפי שנדרש בהנחיות 
-    this.sendRequestWithRetry("PUT", "/tasks/update", data, (res, status) => {
-        if (status === 200) {
-            this.fetchTasks(); // רענון הרשימה
-        } else {
-            alert(res.message);
+        const addForm = document.getElementById('add-task-form');
+        if (addForm) {
+            addForm.onsubmit = (e) => this.handleAddTask(e);
+            
+            // --- חסימת תאריכים מהעבר ---
+            const dateInput = addForm.querySelector('input[name="dueDate"]');
+            if (dateInput) {
+                const today = new Date().toISOString().split('T')[0];
+                dateInput.setAttribute('min', today);
+                dateInput.value = today; // ברירת מחדל להיום
+            }
         }
-    });
-},
+
+        document.getElementById('user-display-name').innerText = this.currentUser.username;
+        this.fetchTasks();
+    }
+}
+
+    filterByCategory(category) {
+        this.currentFilter = category;
+        this.fetchTasks();
+    }
+
+    fetchTasks() {
+        this.sendRequest("GET", "/tasks", { userId: this.currentUser.id }, (res) => {
+            let tasks = res.data;
+            if (this.currentFilter !== 'all') tasks = tasks.filter(t => t.category === this.currentFilter);
+            this.renderTasks(tasks);
+        });
+    }
+
+    renderTasks(tasks) {
+        const list = document.getElementById('data-list');
+        const icons = { studies: '📚', gym: '🏋️', work: '💼', personal: '💖' };
+        
+        list.innerHTML = tasks.length === 0 ? '<p class="empty-msg">אין משימות ברשימה זו.</p>' : tasks.map(t => `
+            <div class="task-item priority-${t.priority} ${t.completed ? 'task-done' : ''}">
+                <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="app.handleToggle('${t.id}', this.checked)">
+                <div class="task-info">
+                    <strong>${icons[t.category] || '📌'} ${t.title}</strong>
+                    <p>${t.description || ''}</p>
+                    ${t.dueDate ? `<small>📅 ${t.dueDate}</small>` : ''}
+                </div>
+                <div class="task-actions">
+                    <button onclick="app.handleEdit('${t.id}', '${t.title}')" ${t.completed ? 'disabled' : ''}>✏️</button>
+                    <button onclick="app.handleDelete('${t.id}')">🗑️</button>
+                </div>
+            </div>
+        `).join('');
+    }
 
     handleAddTask(e) {
         e.preventDefault();
-        const titleInput = e.target.querySelector('input[name="title"]');
-        const data = { 
-            userId: this.currentUser.id, 
-            title: titleInput.value 
+        const data = Object.fromEntries(new FormData(e.target).entries());
+        data.userId = this.currentUser.id;
+        this.sendRequest("POST", "/tasks", data, () => { e.target.reset(); this.fetchTasks(); });
+    }
+
+    handleToggle(id, done) { this.sendRequest("POST", "/tasks/toggle", { id, completed: done }, () => this.fetchTasks()); }
+    
+    handleDelete(id) { 
+        if(confirm("למחוק את המשימה?")) this.sendRequest("POST", "/tasks/delete", { id }, () => this.fetchTasks()); 
+    }
+
+    handleEdit(id, old) { 
+        const title = prompt("עדכן כותרת משימה:", old);
+        if(title && title.trim() !== "") {
+            this.sendRequest("PUT", "/tasks/update", { id, title }, () => this.fetchTasks());
+        }
+    }
+}
+
+class AuthManager extends BaseComponent {
+    constructor(mainApp) { super(); this.mainApp = mainApp; }
+    
+    initEventListeners(tid) {
+    // זיהוי סוג הטופס לפי ה-Template
+    const type = tid === 'register-template' ? 'register' : 'login';
+    const form = document.getElementById(`${type}-form`);
+    
+    if (form) {
+        form.onsubmit = (e) => {
+            e.preventDefault(); // מניעת רענון עמוד
+            this.handleSubmit(e, type);
         };
+    }
+}
 
-        this.sendRequestWithRetry("POST", "/tasks", data, (res, status) => {
-            if (status === 201) {
-                titleInput.value = ''; // ניקוי השדה
-                this.fetchTasks(); // רענון הרשימה
-            }
-        });
-    },
-
-    handleToggle(id, isCompleted) {
-        const data = { id: id, completed: isCompleted };
-        this.sendRequestWithRetry("POST", "/tasks/toggle", data, () => {
-            this.fetchTasks();
-        });
-    },
-
-    handleDelete(id) {
-        if (!confirm("למחוק את המשימה?")) return;
-        const data = { id: id };
-        this.sendRequestWithRetry("POST", "/tasks/delete", data, () => {
-            this.fetchTasks();
-        });
-    },
-
-    // --- 5. טיפול בטפסי כניסה/רישום ---
     handleSubmit(e, type) {
         e.preventDefault();
-        const formData = new FormData(e.target);
-        const data = Object.fromEntries(formData.entries());
-
-        if (!this.validate(data, type)) return;
-
-        const url = type === 'login' ? '/auth/login' : '/auth/register';
-
-        this.sendRequestWithRetry("POST", url, data, (res, status) => {
-            if (status === 200 || status === 201) {
-                if (type === 'login') {
-                    this.currentUser = res.data; // שמירת המשתמש המחובר
-                    this.navigateTo('main-app-template');
-                } else {
-                    alert(res.message);
-                    this.navigateTo('login-template');
+        const data = Object.fromEntries(new FormData(e.target).entries());
+        this.sendRequest("POST", `/auth/${type}`, data, (res, status) => {
+            if (status < 300) {
+                if (type === 'login') { 
+                    this.mainApp.currentUser = res.data; 
+                    this.mainApp.navigateTo('main-app-template'); 
+                } else { 
+                    this.showModal("הרישום בוצע בהצלחה! כעת ניתן להתחבר."); 
+                    this.mainApp.navigateTo('login-template'); 
                 }
             } else {
-                alert(res.message);
+                this.showModal(res.message);
             }
         });
-    },
-
-    handleLogout() {
-        this.currentUser = null;
-        this.navigateTo('login-template');
     }
-};
+}
 
-window.onload = () => App.navigateTo('login-template');
+const app = new TaskManager();
+window.onload = () => app.navigateTo('login-template');

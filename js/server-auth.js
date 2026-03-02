@@ -1,12 +1,6 @@
-//יכיל את פונקציות השרת לרישום משתמש חדש ובדיקת פרטי כניסה
-
-//זכרי שבפרויקט הסופי, הפונקציה הזו לא תיקרא ישירות מהכפתור באתר. 
-// היא "תחכה" בצד השרת, ומי שיעביר לה את המידע יהיה רכיב ה-
-// Network (הכביש המשובש) לאחר השהיה אקראית.
-
 // שרת האימות - אחראי על רישום וכניסה
 class AuthServer {
-    // פונקציית ניתוב - היא מקבלת אובייקט request מה-Network
+    // פונקציית ניתוב - מקבלת בקשה מה-Network
     static handleRequest(request) {
         const { url, method, body } = request;
 
@@ -19,53 +13,63 @@ class AuthServer {
 
         return { status: 404, message: "נתיב לא נמצא בשרת האימות" };
     }
-static register(requestData) {
-    const data = JSON.parse(requestData);
-    const { username, password, email } = data;
 
-    // 1. בדיקה שכל השדות הגיעו
-    if (!username || !password || !email) {
-        return { status: 400, message: "שגיאה: כל השדות חובה" };
-    }
+    // --- רישום משתמש חדש ---
+    static register(requestData) {
+        const data = JSON.parse(requestData);
+        const { username, password, email } = data;
 
-    // 2. בדיקה אם שם המשתמש תפוס (כבר קיים לך)
-    const existingUser = usersDB.getByProperty('username', username);
-    if (existingUser.length > 0) {
-        return { status: 409, message: "שגיאה: שם המשתמש כבר קיים" };
-    }
+        // 1. בדיקה שכל השדות הגיעו
+        if (!username || !password || !email) {
+            return { status: 400, message: "שגיאה: כל השדות חובה" };
+        }
 
-    // 3. הבדיקה החדשה: האם המייל כבר קיים במערכת?
-    const existingEmail = usersDB.getByProperty('email', email);
-    if (existingEmail.length > 0) {
+        // 2. בדיקה אם שם המשתמש כבר קיים
+        const existingUser = usersDB.getByProperty('username', username);
+        if (existingUser.length > 0) {
+            return { status: 409, message: "שם המשתמש הזה כבר תפוס" };
+        }
+
+        // 3. בדיקה אם המייל כבר קיים במערכת
+        const existingEmail = usersDB.getByProperty('email', email);
+        if (existingEmail.length > 0) {
+            return { 
+                status: 409, 
+                message: "כתובת האימייל הזו כבר רשומה במערכת" 
+            };
+        }
+
+        // 4. שמירה ב-DB
+        const newUser = usersDB.add({ username, password, email });
+        
         return { 
-            status: 409, 
-            message: "שגיאה: קיימת כבר הרשמה עם כתובת האימייל הזו" 
+            status: 201, 
+            message: "הרישום בוצע בהצלחה!", 
+            data: { id: newUser.id, username: newUser.username } 
         };
     }
 
-    // 4. אם הכל בסדר - שומרים ב-DB
-    const newUser = usersDB.add({ username, password, email });
-    return { 
-        status: 201, 
-        message: "הרישום בוצע בהצלחה!", 
-        data: { id: newUser.id, username: newUser.username } 
-    };
- }
-
+    // --- כניסת משתמש (לפי אימייל) ---
     static login(requestData) {
-        const { username, password } = JSON.parse(requestData);
-        const users = usersDB.getByProperty('username', username);
+        const { email, password } = JSON.parse(requestData);
+
+        // חיפוש המשתמש לפי כתובת האימייל בלבד
+        const users = usersDB.getByProperty('email', email);
         const user = users[0];
 
+        // בדיקה אם המשתמש קיים ואם הסיסמה תואמת
         if (!user || user.password !== password) {
-            return { status: 401,
-                 message: "שם המשתמש או הסיסמה אינם תקינים" };
+            return { 
+                status: 401, 
+                message: "כתובת האימייל או הסיסמה אינם נכונים" 
+            };
         }
 
+        // החזרת פרטי המשתמש (ללא הסיסמה) לצורך ניהול Session ב-Frontend
         return { 
             status: 200, 
             message: "התחברת בהצלחה!", 
-            data: { id: user.id, username: user.username } 
+            data: { id: user.id, username: user.username, email: user.email } 
         };
     }
 }

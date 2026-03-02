@@ -3,20 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מערכת SPA - פרויקט סיום</title>
+    <title>ניהול משימות - פרויקט סיום</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
     <div id="app"></div>
 
+    <div id="loader" class="loader-hidden">
+        <div class="spinner"></div>
+        <p>מתקשר עם השרת...</p>
+    </div>
+
+    <div id="custom-modal" class="modal-hidden">
+        <div class="modal-content">
+            <p id="modal-message"></p>
+            <button onclick="app.closeModal()" class="primary-btn">הבנתי, תודה</button>
+        </div>
+    </div>
+
     <template id="login-template">
         <div class="auth-card login-style">
             <h2>כניסה למערכת</h2>
             <form id="login-form">
                 <div class="input-group">
-                    <label>שם משתמש:</label>
-                    <input type="text" name="username" placeholder="הכנס שם משתמש" required>
+                    <label>כתובת אימייל:</label>
+                    <input type="email" name="email" placeholder="name@example.com" required>
                 </div>
                 <div class="input-group">
                     <label>סיסמה:</label>
@@ -25,7 +37,7 @@
                 <button type="submit" class="primary-btn">התחבר</button>
             </form>
             <p class="switch-auth">
-                אין לך חשבון? <span onclick="App.navigateTo('register-template')">הירשם כאן</span>
+                אין לך חשבון? <span onclick="app.navigateTo('register-template')">הירשם כאן</span>
             </p>
         </div>
     </template>
@@ -35,8 +47,8 @@
             <h2>יצירת חשבון חדש</h2>
             <form id="register-form">
                 <div class="input-group">
-                    <label>שם משתמש:</label>
-                    <input type="text" name="username" placeholder="לפחות 3 תווים באנגלית" required>
+                    <label>שם מלא:</label>
+                    <input type="text" name="username" placeholder="הכנס שם מלא" required>
                 </div>
                 <div class="input-group">
                     <label>כתובת אימייל:</label>
@@ -53,43 +65,69 @@
                 <button type="submit" class="primary-btn green-btn">הירשם עכשיו</button>
             </form>
             <p class="switch-auth">
-                כבר רשום במערכת? <span onclick="App.navigateTo('login-template')">חזור לכניסה</span>
+                כבר רשום? <span onclick="app.navigateTo('login-template')">חזור לכניסה</span>
             </p>
         </div>
     </template>
 
-   <template id="main-app-template">
-    <div class="main-layout">
-        <header>
-            <div class="user-info">שלום, <strong id="user-display-name"></strong> 👋</div>
-            <button id="logout-btn" class="logout-link">התנתק</button>
-        </header>
-        <main id="tasks-container">
-            <div class="content-card">
-                <h3>המשימות שלי</h3>
-                
-                <form id="add-task-form" class="task-form">
-                    <input type="text" name="title" placeholder="מה המשימה הבאה שלך?" required>
-                    <button type="submit" class="add-btn">הוסף</button>
-                </form>
+    <template id="main-app-template">
+        <div class="main-layout">
+            <header>
+                <div class="user-info">שלום, <strong id="user-display-name"></strong> 👋</div>
+                <button id="logout-btn" class="logout-link">התנתק</button>
+            </header>
+            <main>
+                <div class="content-card">
+                    <h3>המשימות שלי</h3>
+                    
+                    <form id="add-task-form" class="task-form-extended">
+                        <input type="text" name="title" placeholder="כותרת המשימה" required>
+                        <textarea name="description" placeholder="תיאור (אופציונלי)"></textarea>
+                        <div class="form-row">
+                            <div class="field">
+                                <label>תאריך:</label>
+                                <input type="date" name="dueDate">
+                            </div>
+                            <div class="field">
+                                <label>עדיפות:</label>
+                                <select name="priority">
+                                    <option value="low">נמוכה 🟢</option>
+                                    <option value="medium" selected>בינונית 🟡</option>
+                                    <option value="high">גבוהה 🔴</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label>רשימה:</label>
+                                <select name="category">
+                                    <option value="personal">אישי 💖</option>
+                                    <option value="work">עבודה 💼</option>
+                                    <option value="studies">לימודים 📚</option>
+                                    <option value="gym">חדר כושר 🏋️</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="add-btn">+ הוסף משימה</button>
+                    </form>
 
-                <div id="data-list">
-                    <p>טוען נתונים מהשרת...</p>
+                    <div class="category-filters">
+                        <button class="filter-btn" onclick="app.filterByCategory('all')">הכל</button>
+                        <button class="filter-btn" onclick="app.filterByCategory('studies')">📚 לימודים</button>
+                        <button class="filter-btn" onclick="app.filterByCategory('work')">💼 עבודה</button>
+                        <button class="filter-btn" onclick="app.filterByCategory('gym')">🏋️ חדר כושר</button>
+                        <button class="filter-btn" onclick="app.filterByCategory('personal')">💖 אישי</button>
+                    </div>
+
+                    <div id="data-list"></div>
                 </div>
-            </div>
-        </main>
-    </div>
-</template>
+            </main>
+        </div>
+    </template>
 
     <script src="js/database.js"></script>
-
-<script src="js/server-auth.js"></script>
-<script src="js/server-app.js"></script>
-
-<script src="js/network.js"></script>
-
-<script src="js/fajax.js"></script>
-
-<script src="js/app.js"></script>
+    <script src="js/server-auth.js"></script>
+    <script src="js/server-app.js"></script>
+    <script src="js/network.js"></script>
+    <script src="js/fajax.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>

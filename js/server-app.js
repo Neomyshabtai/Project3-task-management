@@ -1,13 +1,10 @@
 // שרת האפליקציה - ניהול משימות (AppServer)
-// הקובץ אחראי על הלוגיקה של ניהול המשימות מול ה-tasksDB
 class AppServer {
 
     // --- 1. פונקציית הניתוב (Router) ---
-    // מקבלת את הבקשה מה-Network ומחליטה לאיזו פונקציה לשלוח אותה
     static handleRequest(request) {
         const { url, method, body } = request;
 
-        // ניתוב לפי נתיב (URL) וסוג בקשה (Method)
         if (url === '/tasks' && method === 'GET') {
             return this.getTasks(body);
         }
@@ -20,13 +17,11 @@ class AppServer {
         if (url === '/tasks/delete' && method === 'POST') {
             return this.deleteTask(body);
         }
-        if (url === '/tasks/update' && method === 'PUT') { // שימי לב לשימוש ב-PUT לפי ההנחיות 
+        if (url === '/tasks/update' && method === 'PUT') {
             return this.updateTask(body);
-}
+        }
 
         return { status: 404, message: "נתיב לא נמצא בשרת האפליקציה" };
-
-        
     }
 
     // --- 2. שליפת משימות של משתמש ---
@@ -37,27 +32,27 @@ class AppServer {
             return { status: 400, message: "שגיאה: חסר מזהה משתמש" };
         }
 
-        // שליפת משימות ששייכות רק למשתמש המחובר
+        // שליפת משימות לפי ה-API של ה-database.js
         const userTasks = tasksDB.getByProperty('userId', userId);
 
         return {
             status: 200,
-            data: userTasks // מחזירים אובייקט, ה-FAJAX יהפוך לטקסט
+            data: userTasks
         };
     }
 
-    // --- 3. הוספת משימה חדשה ---
+    // --- 3. הוספת משימה חדשה (מעודכן לכל השדות) ---
     static addTask(requestData) {
-        const { userId, title } = JSON.parse(requestData);
+        const data = JSON.parse(requestData);
+        const { userId, title } = data;
 
         if (!title) {
             return { status: 400, message: "שגיאה: חובה להזין כותרת למשימה" };
         }
 
-        // שמירה במאגר דרך ה-DB-API
+        // שימוש ב-Spread Operator כדי לשמור את description, priority, category ו-dueDate
         const newTask = tasksDB.add({
-            userId: userId,
-            title: title,
+            ...data, 
             completed: false,
             createdAt: new Date().toISOString()
         });
@@ -69,51 +64,41 @@ class AppServer {
         };
     }
 
-    // --- 4. עדכון סטטוס משימה (בוצע/לא בוצע) ---
+    // --- 4. עדכון סטטוס משימה ---
     static toggleTaskStatus(requestData) {
         const { id, completed } = JSON.parse(requestData);
-
-        // עדכון הרשומה הספציפית ב-Local Storage
         const updatedTask = tasksDB.update(id, { completed: completed });
 
         if (!updatedTask) {
             return { status: 404, message: "שגיאה: המשימה לא נמצאה" };
         }
 
-        return {
-            status: 200,
-            message: "סטטוס המשימה עודכן",
-            data: updatedTask
-        };
+        return { status: 200, message: "סטטוס המשימה עודכן" };
     }
 
-     // --- 5. עדכון ועריכת משימה ---
+    // --- 5. עדכון ועריכת משימה ---
     static updateTask(requestData) {
-    const { id, title } = JSON.parse(requestData);
-    
-    // שימוש במתודת ה-update הקיימת ב-database.js
-    const updatedTask = tasksDB.update(id, { title: title });
+        const { id, title } = JSON.parse(requestData);
+        
+        // כאן ניתן להוסיף עדכון שדות נוספים אם תרצי בעתיד (כמו תיאור)
+        const updatedTask = tasksDB.update(id, { title: title });
 
-    if (!updatedTask) {
-        return { status: 404, message: "שגיאה: המשימה לא נמצאה לעדכון" };
+        if (!updatedTask) {
+            return { status: 404, message: "שגיאה: המשימה לא נמצאה לעדכון" };
+        }
+
+        return { status: 200, message: "המשימה עודכנה בהצלחה" };
     }
-
-    return { status: 200, message: "המשימה עודכנה בהצלחה", data: updatedTask };
-}
 
     // --- 6. מחיקת משימה ---
     static deleteTask(requestData) {
         const { id } = JSON.parse(requestData);
-
         const success = tasksDB.delete(id);
 
         if (!success) {
-            return { status: 404, message: "שגיאה: לא ניתן למחוק משימה שלא קיימת" };
+            return { status: 404, message: "שגיאה: לא ניתן למחוק" };
         }
 
-        return {
-            status: 200,
-            message: "המשימה נמחקה בהצלחה"
-        };
+        return { status: 200, message: "המשימה נמחקה" };
     }
 }
