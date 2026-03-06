@@ -53,6 +53,8 @@ class BaseComponent {
     }
 }
 
+// ... (BaseComponent נשאר ללא שינוי)
+
 class TaskManager extends BaseComponent {
     constructor() {
         super();
@@ -61,36 +63,18 @@ class TaskManager extends BaseComponent {
     }
 
     initEventListeners(templateId) {
-    if (templateId === 'login-template' || templateId === 'register-template') {
-        new AuthManager(this).initEventListeners(templateId);
-    } else if (templateId === 'main-app-template') {
-        // התנתקות
-        document.getElementById('logout-btn').onclick = () => { 
-            this.currentUser = null; 
-            this.navigateTo('login-template'); 
-        };
-
-        const addForm = document.getElementById('add-task-form');
-        if (addForm) {
-            addForm.onsubmit = (e) => this.handleAddTask(e);
-            
-            // --- חסימת תאריכים מהעבר ---
-            const dateInput = addForm.querySelector('input[name="dueDate"]');
-            if (dateInput) {
-                const today = new Date().toISOString().split('T')[0];
-                dateInput.setAttribute('min', today);
-                dateInput.value = today; // ברירת מחדל להיום
-            }
+        if (templateId === 'login-template' || templateId === 'register-template') {
+            new AuthManager(this).initEventListeners(templateId);
+        } else if (templateId === 'main-app-template') {
+            document.getElementById('logout-btn').onclick = () => { 
+                this.currentUser = null; 
+                this.navigateTo('login-template'); 
+            };
+            const addForm = document.getElementById('add-task-form');
+            if (addForm) addForm.onsubmit = (e) => this.handleAddTask(e);
+            document.getElementById('user-display-name').innerText = this.currentUser.username;
+            this.fetchTasks();
         }
-
-        document.getElementById('user-display-name').innerText = this.currentUser.username;
-        this.fetchTasks();
-    }
-}
-
-    filterByCategory(category) {
-        this.currentFilter = category;
-        this.fetchTasks();
     }
 
     fetchTasks() {
@@ -103,42 +87,64 @@ class TaskManager extends BaseComponent {
 
     renderTasks(tasks) {
         const list = document.getElementById('data-list');
-        const icons = { studies: '📚', gym: '🏋️', work: '💼', personal: '💖' };
-        
-        list.innerHTML = tasks.length === 0 ? '<p class="empty-msg">אין משימות ברשימה זו.</p>' : tasks.map(t => `
+        list.innerHTML = tasks.length === 0 ? '<p class="empty-msg">אין משימות.</p>' : tasks.map(t => `
             <div class="task-item priority-${t.priority} ${t.completed ? 'task-done' : ''}">
-                <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="app.handleToggle('${t.id}', this.checked)">
+                <input type="checkbox" class="task-checkbox" ${t.completed ? 'checked' : ''} onchange="app.handleToggle('${t.id}', this.checked)">
                 <div class="task-info">
-                    <strong>${icons[t.category] || '📌'} ${t.title}</strong>
+                    <strong>${t.title}</strong>
                     <p>${t.description || ''}</p>
                     ${t.dueDate ? `<small>📅 ${t.dueDate}</small>` : ''}
                 </div>
                 <div class="task-actions">
-                    <button onclick="app.handleEdit('${t.id}', '${t.title}')" ${t.completed ? 'disabled' : ''}>✏️</button>
+                    <button onclick="app.handleOpenEdit('${t.id}')" ${t.completed ? 'disabled' : ''}>✏️</button>
                     <button onclick="app.handleDelete('${t.id}')">🗑️</button>
                 </div>
             </div>
         `).join('');
     }
 
+    handleOpenEdit(id) {
+        this.sendRequest("GET", "/tasks", { userId: this.currentUser.id }, (res) => {
+            const task = res.data.find(t => t.id === id);
+            if (!task) return;
+            const modal = document.getElementById('edit-task-modal');
+            const form = document.getElementById('edit-task-form');
+            document.getElementById('display-task-title').innerText = task.title; // הצגת כותרת כטקסט בלבד
+            form.id.value = task.id;
+            form.description.value = task.description || "";
+            form.dueDate.value = task.dueDate || "";
+            form.priority.value = task.priority;
+            modal.classList.replace('modal-hidden', 'modal-visible');
+            form.onsubmit = (e) => this.handleUpdateTask(e);
+        });
+    }
+
+    handleUpdateTask(e) {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target).entries());
+        this.sendRequest("PUT", "/tasks/update", data, () => {
+            this.closeEditModal();
+            this.fetchTasks();
+        });
+    }
+
+    closeEditModal() {
+        document.getElementById('edit-task-modal').classList.replace('modal-visible', 'modal-hidden');
+    }
+
+    handleDelete(id) {
+        if(confirm("למחוק את המשימה?")) this.sendRequest("POST", "/tasks/delete", { id }, () => this.fetchTasks());
+    }
+
+    handleToggle(id, done) { 
+        this.sendRequest("POST", "/tasks/toggle", { id, completed: done }, () => this.fetchTasks()); 
+    }
+    
     handleAddTask(e) {
         e.preventDefault();
         const data = Object.fromEntries(new FormData(e.target).entries());
         data.userId = this.currentUser.id;
         this.sendRequest("POST", "/tasks", data, () => { e.target.reset(); this.fetchTasks(); });
-    }
-
-    handleToggle(id, done) { this.sendRequest("POST", "/tasks/toggle", { id, completed: done }, () => this.fetchTasks()); }
-    
-    handleDelete(id) { 
-        if(confirm("למחוק את המשימה?")) this.sendRequest("POST", "/tasks/delete", { id }, () => this.fetchTasks()); 
-    }
-
-    handleEdit(id, old) { 
-        const title = prompt("עדכן כותרת משימה:", old);
-        if(title && title.trim() !== "") {
-            this.sendRequest("PUT", "/tasks/update", { id, title }, () => this.fetchTasks());
-        }
     }
 }
 

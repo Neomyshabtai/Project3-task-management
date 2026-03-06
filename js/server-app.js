@@ -77,18 +77,19 @@ class AppServer {
     }
 
     // --- 5. עדכון ועריכת משימה ---
-    static updateTask(requestData) {
-        const { id, title } = JSON.parse(requestData);
-        
-        // כאן ניתן להוסיף עדכון שדות נוספים אם תרצי בעתיד (כמו תיאור)
-        const updatedTask = tasksDB.update(id, { title: title });
+   static updateTask(requestData) {
+    const data = JSON.parse(requestData);
+    const { id } = data;
 
-        if (!updatedTask) {
-            return { status: 404, message: "שגיאה: המשימה לא נמצאה לעדכון" };
-        }
+    // ה-DB-API מבצע עדכון חלקי (ממזג שדות)
+    const updatedTask = tasksDB.update(id, data);
 
-        return { status: 200, message: "המשימה עודכנה בהצלחה" };
+    if (!updatedTask) {
+        return { status: 404, message: "המשימה לא נמצאה" };
     }
+
+    return { status: 200, message: "המשימה עודכנה בהצלחה" };
+}
 
     // --- 6. מחיקת משימה ---
     static deleteTask(requestData) {

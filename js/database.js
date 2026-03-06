@@ -82,9 +82,7 @@ class LocalDatabase {
     }
 }
 
+
 // יצירת שני מאגרי המידע הנדרשים לפרויקט 
 const usersDB = new LocalDatabase('users_data');
 const tasksDB = new LocalDatabase('tasks_data');
-
-// ייצוא המאגרים לשימוש בשאר חלקי המערכת (אם אתן משתמשות במודולים)
-// או פשוט להשאיר אותם כמשתנים גלובליים שקובץ השרת יוכל לראות

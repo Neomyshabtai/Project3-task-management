@@ -122,6 +122,40 @@
             </main>
         </div>
     </template>
+    
+<div id="edit-task-modal" class="modal-hidden">
+    <div class="modal-content">
+    <h3>עריכת משימה</h3>
+    <div class="task-identity-display">
+        <span id="display-task-category"></span> 
+        <strong id="display-task-title"></strong>
+    </div>
+    
+    <form id="edit-task-form" class="task-form-extended">
+        <textarea name="description" placeholder="עדכן תיאור המשימה"></textarea>
+        </form>
+</div>
+            <div class="form-row">
+                <div class="field">
+                    <label>תאריך:</label>
+                    <input type="date" name="dueDate">
+                </div>
+                <div class="field">
+                    <label>עדיפות:</label>
+                    <select name="priority">
+                        <option value="low">נמוכה 🟢</option>
+                        <option value="medium">בינונית 🟡</option>
+                        <option value="high">גבוהה 🔴</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-actions-container">
+                <button type="submit" class="save-btn">שמור שינויים</button>
+                <button type="button" onclick="app.closeEditModal()" class="cancel-btn">ביטול</button>
+            </div>
+        </form>
+    </div>
+</div>
 
     <script src="js/database.js"></script>
     <script src="js/server-auth.js"></script>

@@ -1,4 +1,4 @@
-/* --- 1. עיצוב בסיסי ואנימציות --- */
+/* --- 1. הגדרות בסיסיות ואיפוס --- */
 body {
     font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
     background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
@@ -22,23 +22,7 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* --- 2. כרטיסיות אימות (Login/Register) --- */
-.auth-card {
-    background: rgba(255, 255, 255, 0.95);
-    padding: 2.5rem;
-    border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-    width: 100%;
-    max-width: 420px;
-    text-align: center;
-}
-
-h2 { font-weight: 700; color: #0984e3; margin-bottom: 2rem; }
-
-.input-group { text-align: right; margin-bottom: 1.2rem; }
-
-label { font-weight: 600; margin-bottom: 8px; color: #636e72; display: block; }
-
+/* --- 2. רכיבי טפסים וכפתורים כלליים --- */
 input, select, textarea {
     width: 100%;
     padding: 12px 15px;
@@ -67,11 +51,32 @@ input:focus, select:focus, textarea:focus {
     margin-top: 15px;
 }
 
-.primary-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+.primary-btn:hover:not(:disabled) { 
+    transform: translateY(-2px); 
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
+}
+
+/* --- 3. כרטיסיות אימות (Login/Register) --- */
+.auth-card {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+}
+
+h2 { font-weight: 700; color: #0984e3; margin-bottom: 2rem; }
+
+.input-group { text-align: right; margin-bottom: 1.2rem; }
+
+label { font-weight: 600; margin-bottom: 8px; color: #636e72; display: block; }
+
 .login-style .primary-btn { background: #0984e3; color: white; }
 .register-style .primary-btn { background: #00b894; color: white; }
 
-/* --- 3. מבנה האפליקציה הראשי --- */
+/* --- 4. מבנה האפליקציה הראשי --- */
 .main-layout { 
     width: 95%; 
     max-width: 900px; 
@@ -101,9 +106,10 @@ header {
     transition: 0.3s;
 }
 
+
 main { padding: 2rem; }
 
-/* --- 4. טופס הוספת משימה מורחב --- */
+/* טופס הוספה/עריכה מורחב */
 .task-form-extended {
     display: flex;
     flex-direction: column;
@@ -114,16 +120,8 @@ main { padding: 2rem; }
     margin-bottom: 25px;
 }
 
-.form-row {
-    display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
-}
-
-.field {
-    flex: 1;
-    min-width: 140px;
-}
+.form-row { display: flex; gap: 15px; flex-wrap: wrap; }
+.field { flex: 1; min-width: 140px; }
 
 .add-btn {
     padding: 12px;
@@ -137,37 +135,7 @@ main { padding: 2rem; }
     font-size: 1rem;
 }
 
-/* --- 5. פילטרים ורשימות --- */
-.category-filters {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    overflow-x: auto;
-    padding-bottom: 10px;
-}
-
-.filter-btn {
-    padding: 8px 18px;
-    border: 2px solid #0984e3;
-    background: white;
-    color: #0984e3;
-    border-radius: 20px;
-    cursor: pointer;
-    white-space: nowrap;
-    font-weight: 600;
-    transition: 0.3s;
-}
-
-.filter-btn.active, .filter-btn:hover {
-    background: #0984e3;
-    color: white;
-}
-
-/* --- 6. עיצוב פריט משימה - שדרג מודרני --- */
-#data-list {
-    margin-top: 20px;
-}
-
+/* --- 5. רשימת משימות ופריטים --- */
 .task-item {
     display: flex;
     align-items: center;
@@ -175,126 +143,43 @@ main { padding: 2rem; }
     padding: 16px 24px;
     border-radius: 12px;
     margin-bottom: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.03); /* צל עדין ורך */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
     transition: all 0.2s ease;
-    border-right: 8px solid #dfe6e9; /* בורדר עדין כברירת מחדל */
-    position: relative;
+    border-right: 8px solid #dfe6e9;
     gap: 15px;
 }
 
-.task-item:hover {
-    transform: translateY(-2px); /* ציפה קלה בהעברת עכבר */
-    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-}
+.task-item:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
 
-/* צבעי עדיפות בבורדר הימני - צבעים חדים יותר */
-.priority-high { border-right-color: #ff7675 !important; } /* אדום פסטל */
-.priority-medium { border-right-color: #fab1a0 !important; } /* כתום פסטל */
-.priority-low { border-right-color: #55efc4 !important; } /* ירוק מנטה */
+/* צבעי עדיפות */
+.priority-high { border-right-color: #ff7675 !important; }
+.priority-medium { border-right-color: #fab1a0 !important; }
+.priority-low { border-right-color: #55efc4 !important; }
 
-/* מבנה המידע הפנימי */
-.task-info {
-    flex-grow: 1;
-    text-align: right;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
+.task-info { flex-grow: 1; text-align: right; display: flex; flex-direction: column; gap: 5px; }
+.task-info strong { font-size: 1.15rem; color: #2d3436; font-weight: 600; }
+.task-info p { margin: 0; color: #636e72; font-size: 0.95rem; }
+.task-info small { color: #0984e3; font-weight: 600; font-size: 0.85rem; }
 
-.task-info strong {
-    font-size: 1.15rem;
-    color: #2d3436;
-    font-weight: 600;
-}
+.task-checkbox { width: 22px; height: 22px; cursor: pointer; accent-color: #00b894; }
 
-.task-info p {
-    margin: 0;
-    color: #636e72;
-    font-size: 0.95rem;
-    line-height: 1.4;
-}
+.task-done { background: #fcfcfc; opacity: 0.5; border-right-color: #b2bec3 !important; }
+.task-done .task-info strong { text-decoration: line-through; color: #b2bec3; }
 
-.task-info small {
-    color: #0984e3;
-    font-weight: 600;
-    font-size: 0.85rem;
-    margin-top: 3px;
-    display: block;
-}
+.task-actions { display: flex; gap: 8px; opacity: 0.3; transition: 0.2s; }
+.task-item:hover .task-actions { opacity: 1; }
+.task-actions button { background: none; border: none; font-size: 1.3rem; cursor: pointer; padding: 6px; transition: 0.2s; }
+.task-actions button:hover { transform: scale(1.1); }
 
-/* תיבת סימון (Checkbox) עגולה ומודרנית */
-.task-checkbox {
-    width: 22px;
-    height: 22px;
-    cursor: pointer;
-    accent-color: #00b894;
-    border-radius: 50%; /* הופך לעגול בדפדפנים תומכים */
-    margin: 0;
-}
-
-/* משימה שבוצעה - מראה "כבוי" */
-.task-done {
-    background: #fcfcfc;
-    opacity: 0.5;
-    border-right-color: #b2bec3 !important;
-}
-
-.task-done .task-info strong {
-    text-decoration: line-through;
-    color: #b2bec3;
-}
-
-/* כפתורי פעולה - מינימליסטיים */
-.task-actions {
-    display: flex;
-    gap: 8px;
-    opacity: 0.3; /* מוסתרים חלקית כברירת מחדל */
-    transition: 0.2s;
-}
-
-.task-item:hover .task-actions {
-    opacity: 1; /* מופיעים בהעברת עכבר על המשימה */
-}
-
-.task-actions button {
-    background: none;
-    border: none;
-    font-size: 1.3rem;
-    cursor: pointer;
-    padding: 6px;
-    border-radius: 8px;
-    transition: 0.2s;
-}
-
-/* אפקט Hover לכפתורים */
-.task-actions button:hover {
-    background: #f1f3f5;
-    transform: scale(1.1);
-}
-
-.task-actions button:disabled {
-    cursor: not-allowed;
-    opacity: 0.3;
-}
-
-/* הודעת רשימה ריקה */
-.empty-msg {
-    text-align: center;
-    color: #b2bec3;
-    padding: 30px;
-    font-style: italic;
-    background: #f8f9fa;
-    border-radius: 10px;
-}
-/* --- 7. מודאל וספינר (Loader) --- */
-#custom-modal, #loader {
-    position: fixed;
+/* --- 6. מודאלים, ספינר ושכבות (Overlays) --- */
+#custom-modal, #loader, #edit-task-modal {
+    position: fixed; /* שינוי קריטי: מוציא את המודאל מזרימת המסמך */
     top: 0; left: 0; width: 100%; height: 100%;
     display: flex; justify-content: center; align-items: center;
     z-index: 10000; transition: 0.3s;
 }
 
-#custom-modal { background: rgba(45, 52, 54, 0.6); }
+#custom-modal, #edit-task-modal { background: rgba(45, 52, 54, 0.6); }
 #loader { background: rgba(255, 255, 255, 0.8); flex-direction: column; }
 
 .modal-hidden, .loader-hidden { visibility: hidden; opacity: 0; }
@@ -305,10 +190,19 @@ main { padding: 2rem; }
     padding: 30px;
     border-radius: 20px;
     max-width: 380px;
+    width: 90%;
     text-align: center;
     box-shadow: 0 15px 35px rgba(0,0,0,0.2);
 }
 
+/* הגדרות ספציפיות לכפתורי מודאל עריכה */
+.modal-footer-actions { display: flex; gap: 12px; margin-top: 25px; }
+.modal-footer-actions button { padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; border: none; flex: 1; }
+
+.save-btn { background-color: #00b894; color: white; flex: 2 !important; }
+.cancel-btn { background-color: #dfe6e9; color: #2d3436; }
+
+/* אנימציית טעינה */
 .spinner {
     width: 50px; height: 50px;
     border: 5px solid #f3f3f3;
@@ -318,7 +212,4 @@ main { padding: 2rem; }
     margin-bottom: 15px;
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
+@keyframes spin { 100% { transform: rotate(360deg); } }
