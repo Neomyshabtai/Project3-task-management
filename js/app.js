@@ -53,8 +53,6 @@ class BaseComponent {
     }
 }
 
-// ... (BaseComponent נשאר ללא שינוי)
-
 class TaskManager extends BaseComponent {
     constructor() {
         super();
@@ -75,6 +73,11 @@ class TaskManager extends BaseComponent {
             document.getElementById('user-display-name').innerText = this.currentUser.username;
             this.fetchTasks();
         }
+    }
+
+    filterByCategory(category) {
+        this.currentFilter = category;
+        this.fetchTasks();
     }
 
     fetchTasks() {
@@ -109,7 +112,8 @@ class TaskManager extends BaseComponent {
             if (!task) return;
             const modal = document.getElementById('edit-task-modal');
             const form = document.getElementById('edit-task-form');
-            document.getElementById('display-task-title').innerText = task.title; // הצגת כותרת כטקסט בלבד
+            document.getElementById('display-task-title').innerText = task.title;
+            // ✅ תוקן: עכשיו שדה name="id" קיים ב-HTML
             form.id.value = task.id;
             form.description.value = task.description || "";
             form.dueDate.value = task.dueDate || "";
@@ -122,6 +126,8 @@ class TaskManager extends BaseComponent {
     handleUpdateTask(e) {
         e.preventDefault();
         const data = Object.fromEntries(new FormData(e.target).entries());
+        // הוספת userId לאימות בשרת
+        data.userId = this.currentUser.id;
         this.sendRequest("PUT", "/tasks/update", data, () => {
             this.closeEditModal();
             this.fetchTasks();
@@ -133,11 +139,13 @@ class TaskManager extends BaseComponent {
     }
 
     handleDelete(id) {
-        if(confirm("למחוק את המשימה?")) this.sendRequest("POST", "/tasks/delete", { id }, () => this.fetchTasks());
+        if(confirm("למחוק את המשימה?")) {
+            this.sendRequest("POST", "/tasks/delete", { id, userId: this.currentUser.id }, () => this.fetchTasks());
+        }
     }
 
     handleToggle(id, done) { 
-        this.sendRequest("POST", "/tasks/toggle", { id, completed: done }, () => this.fetchTasks()); 
+        this.sendRequest("POST", "/tasks/toggle", { id, completed: done, userId: this.currentUser.id }, () => this.fetchTasks()); 
     }
     
     handleAddTask(e) {
@@ -152,17 +160,16 @@ class AuthManager extends BaseComponent {
     constructor(mainApp) { super(); this.mainApp = mainApp; }
     
     initEventListeners(tid) {
-    // זיהוי סוג הטופס לפי ה-Template
-    const type = tid === 'register-template' ? 'register' : 'login';
-    const form = document.getElementById(`${type}-form`);
-    
-    if (form) {
-        form.onsubmit = (e) => {
-            e.preventDefault(); // מניעת רענון עמוד
-            this.handleSubmit(e, type);
-        };
+        const type = tid === 'register-template' ? 'register' : 'login';
+        const form = document.getElementById(`${type}-form`);
+        
+        if (form) {
+            form.onsubmit = (e) => {
+                e.preventDefault();
+                this.handleSubmit(e, type);
+            };
+        }
     }
-}
 
     handleSubmit(e, type) {
         e.preventDefault();

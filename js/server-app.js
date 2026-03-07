@@ -5,6 +5,12 @@ class AppServer {
     static handleRequest(request) {
         const { url, method, body } = request;
 
+        // בדיקת הרשאה: כל פניה לשרת האפליקציה חייבת לכלול userId
+        const parsedBody = body ? JSON.parse(body) : {};
+        if (!parsedBody.userId) {
+            return { status: 401, message: "גישה נדחתה: נדרשת כניסה למערכת" };
+        }
+
         if (url === '/tasks' && method === 'GET') {
             return this.getTasks(body);
         }
@@ -32,7 +38,6 @@ class AppServer {
             return { status: 400, message: "שגיאה: חסר מזהה משתמש" };
         }
 
-        // שליפת משימות לפי ה-API של ה-database.js
         const userTasks = tasksDB.getByProperty('userId', userId);
 
         return {
@@ -41,18 +46,21 @@ class AppServer {
         };
     }
 
-    // --- 3. הוספת משימה חדשה (מעודכן לכל השדות) ---
+    // --- 3. הוספת משימה חדשה ---
     static addTask(requestData) {
         const data = JSON.parse(requestData);
         const { userId, title } = data;
+
+        if (!userId) {
+            return { status: 401, message: "גישה נדחתה: נדרשת כניסה למערכת" };
+        }
 
         if (!title) {
             return { status: 400, message: "שגיאה: חובה להזין כותרת למשימה" };
         }
 
-        // שימוש ב-Spread Operator כדי לשמור את description, priority, category ו-dueDate
         const newTask = tasksDB.add({
-            ...data, 
+            ...data,
             completed: false,
             createdAt: new Date().toISOString()
         });
@@ -77,19 +85,18 @@ class AppServer {
     }
 
     // --- 5. עדכון ועריכת משימה ---
-   static updateTask(requestData) {
-    const data = JSON.parse(requestData);
-    const { id } = data;
+    static updateTask(requestData) {
+        const data = JSON.parse(requestData);
+        const { id } = data;
 
-    // ה-DB-API מבצע עדכון חלקי (ממזג שדות)
-    const updatedTask = tasksDB.update(id, data);
+        const updatedTask = tasksDB.update(id, data);
 
-    if (!updatedTask) {
-        return { status: 404, message: "המשימה לא נמצאה" };
+        if (!updatedTask) {
+            return { status: 404, message: "המשימה לא נמצאה" };
+        }
+
+        return { status: 200, message: "המשימה עודכנה בהצלחה" };
     }
-
-    return { status: 200, message: "המשימה עודכנה בהצלחה" };
-}
 
     // --- 6. מחיקת משימה ---
     static deleteTask(requestData) {
