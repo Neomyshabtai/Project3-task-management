@@ -18,12 +18,21 @@ body {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* --- 2. רכיבי טפסים וכפתורים כלליים --- */
-input, select, textarea {
+input,
+select,
+textarea {
     width: 100%;
     padding: 12px 15px;
     border: 2px solid #e1e8ed;
@@ -33,10 +42,12 @@ input, select, textarea {
     box-sizing: border-box;
 }
 
-input:focus, select:focus, textarea:focus { 
-    border-color: #74b9ff; 
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: #74b9ff;
     box-shadow: 0 0 0 4px rgba(116, 185, 255, 0.1);
-    outline: none; 
+    outline: none;
 }
 
 .primary-btn {
@@ -51,9 +62,9 @@ input:focus, select:focus, textarea:focus {
     margin-top: 15px;
 }
 
-.primary-btn:hover:not(:disabled) { 
-    transform: translateY(-2px); 
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
+.primary-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 /* --- 3. כרטיסיות אימות (Login/Register) --- */
@@ -61,28 +72,47 @@ input:focus, select:focus, textarea:focus {
     background: rgba(255, 255, 255, 0.95);
     padding: 2.5rem;
     border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
     width: 100%;
     max-width: 420px;
     text-align: center;
 }
 
-h2 { font-weight: 700; color: #0984e3; margin-bottom: 2rem; }
+h2 {
+    font-weight: 700;
+    color: #0984e3;
+    margin-bottom: 2rem;
+}
 
-.input-group { text-align: right; margin-bottom: 1.2rem; }
+.input-group {
+    text-align: right;
+    margin-bottom: 1.2rem;
+}
 
-label { font-weight: 600; margin-bottom: 8px; color: #636e72; display: block; }
+label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #636e72;
+    display: block;
+}
 
-.login-style .primary-btn { background: #0984e3; color: white; }
-.register-style .primary-btn { background: #00b894; color: white; }
+.login-style .primary-btn {
+    background: #0984e3;
+    color: white;
+}
+
+.register-style .primary-btn {
+    background: #00b894;
+    color: white;
+}
 
 /* --- 4. מבנה האפליקציה הראשי --- */
-.main-layout { 
-    width: 95%; 
-    max-width: 900px; 
-    background: white; 
-    border-radius: 20px; 
-    box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+.main-layout {
+    width: 95%;
+    max-width: 900px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     margin: 20px 0;
 }
@@ -106,7 +136,9 @@ header {
     transition: 0.3s;
 }
 
-main { padding: 2rem; }
+main {
+    padding: 2rem;
+}
 
 /* טופס הוספה/עריכה מורחב */
 .task-form-extended {
@@ -119,8 +151,16 @@ main { padding: 2rem; }
     margin-bottom: 25px;
 }
 
-.form-row { display: flex; gap: 15px; flex-wrap: wrap; }
-.field { flex: 1; min-width: 140px; }
+.form-row {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.field {
+    flex: 1;
+    min-width: 140px;
+}
 
 .add-btn {
     padding: 12px;
@@ -142,47 +182,135 @@ main { padding: 2rem; }
     padding: 16px 24px;
     border-radius: 12px;
     margin-bottom: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
     transition: all 0.2s ease;
     border-right: 8px solid #dfe6e9;
     gap: 15px;
 }
 
-.task-item:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
-
-/* צבעי עדיפות */
-.priority-high { border-right-color: #ff7675 !important; }
-.priority-medium { border-right-color: #fab1a0 !important; }
-.priority-low { border-right-color: #55efc4 !important; }
-
-.task-info { flex-grow: 1; text-align: right; display: flex; flex-direction: column; gap: 5px; }
-.task-info strong { font-size: 1.15rem; color: #2d3436; font-weight: 600; }
-.task-info p { margin: 0; color: #636e72; font-size: 0.95rem; }
-.task-info small { color: #0984e3; font-weight: 600; font-size: 0.85rem; }
-
-.task-checkbox { width: 22px; height: 22px; cursor: pointer; accent-color: #00b894; }
-
-.task-done { background: #fcfcfc; opacity: 0.5; border-right-color: #b2bec3 !important; }
-.task-done .task-info strong { text-decoration: line-through; color: #b2bec3; }
-
-.task-actions { display: flex; gap: 8px; opacity: 0.3; transition: 0.2s; }
-.task-item:hover .task-actions { opacity: 1; }
-.task-actions button { background: none; border: none; font-size: 1.3rem; cursor: pointer; padding: 6px; transition: 0.2s; }
-.task-actions button:hover { transform: scale(1.1); }
-
-/* --- 6. מודאלים, ספינר ושכבות (Overlays) --- */
-#custom-modal, #loader, #edit-task-modal {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    display: flex; justify-content: center; align-items: center;
-    z-index: 10000; transition: 0.3s;
+.task-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
 }
 
-#custom-modal, #edit-task-modal { background: rgba(45, 52, 54, 0.6); }
-#loader { background: rgba(255, 255, 255, 0.8); flex-direction: column; }
+/* צבעי עדיפות */
+.priority-high {
+    border-right-color: #ff7675 !important;
+}
 
-.modal-hidden, .loader-hidden { visibility: hidden; opacity: 0; }
-.modal-visible, .loader-visible { visibility: visible; opacity: 1; }
+.priority-medium {
+    border-right-color: #f1c40f !important;
+}
+
+.priority-low {
+    border-right-color: #55efc4 !important;
+}
+
+.task-info {
+    flex-grow: 1;
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.task-info strong {
+    font-size: 1.15rem;
+    color: #2d3436;
+    font-weight: 600;
+}
+
+.task-info p {
+    margin: 0;
+    color: #636e72;
+    font-size: 0.95rem;
+}
+
+.task-info small {
+    color: #0984e3;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.task-checkbox {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    accent-color: #00b894;
+}
+
+.task-done {
+    background: #fcfcfc;
+    opacity: 0.5;
+    border-right-color: #b2bec3 !important;
+}
+
+.task-done .task-info strong {
+    text-decoration: line-through;
+    color: #b2bec3;
+}
+
+.task-actions {
+    display: flex;
+    gap: 8px;
+    opacity: 0.3;
+    transition: 0.2s;
+}
+
+.task-item:hover .task-actions {
+    opacity: 1;
+}
+
+.task-actions button {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    cursor: pointer;
+    padding: 6px;
+    transition: 0.2s;
+}
+
+.task-actions button:hover {
+    transform: scale(1.1);
+}
+
+/* --- 6. מודאלים, ספינר ושכבות (Overlays) --- */
+#custom-modal,
+#loader,
+#edit-task-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    transition: 0.3s;
+}
+
+#custom-modal,
+#edit-task-modal {
+    background: rgba(45, 52, 54, 0.6);
+}
+
+#loader {
+    background: rgba(255, 255, 255, 0.8);
+    flex-direction: column;
+}
+
+.modal-hidden,
+.loader-hidden {
+    visibility: hidden;
+    opacity: 0;
+}
+
+.modal-visible,
+.loader-visible {
+    visibility: visible;
+    opacity: 1;
+}
 
 .modal-content {
     background: white;
@@ -191,7 +319,7 @@ main { padding: 2rem; }
     max-width: 450px;
     width: 90%;
     text-align: center;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
 }
 
 /* ✅ תוקן: תמיכה בשם הקלאס הנכון מה-HTML */
@@ -212,12 +340,21 @@ main { padding: 2rem; }
     flex: 1;
 }
 
-.save-btn { background-color: #00b894; color: white; flex: 2 !important; }
-.cancel-btn { background-color: #dfe6e9; color: #2d3436; }
+.save-btn {
+    background-color: #00b894;
+    color: white;
+    flex: 2 !important;
+}
+
+.cancel-btn {
+    background-color: #dfe6e9;
+    color: #2d3436;
+}
 
 /* אנימציית טעינה */
 .spinner {
-    width: 50px; height: 50px;
+    width: 50px;
+    height: 50px;
     border: 5px solid #f3f3f3;
     border-top: 5px solid #0984e3;
     border-radius: 50%;
@@ -225,7 +362,11 @@ main { padding: 2rem; }
     margin-bottom: 15px;
 }
 
-@keyframes spin { 100% { transform: rotate(360deg); } }
+@keyframes spin {
+    100% {
+        transform: rotate(360deg);
+    }
+}
 
 /* --- 7. כפתורי פילטר קטגוריה --- */
 .category-filters {
