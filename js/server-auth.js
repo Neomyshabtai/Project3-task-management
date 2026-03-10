@@ -25,39 +25,57 @@ class AuthServer {
      * מחזירה סטטוס 201 (Created) במקרה של הצלחה.
      */
     static register(requestData) {
-        // הפיכת הנתונים ממחרוזת JSON חזרה לאובייקט לצורך עבודה נוחה
-        const data = JSON.parse(requestData);
-        const { username, password, email } = data;
+    // 1. הפיכת הנתונים לאובייקט
+    const data = JSON.parse(requestData);
+    const { username, password, email } = data;
 
-        // 1. ולידציית נוכחות: בדיקה שכל השדות הגיעו מה-Frontend
-        if (!username || !password || !email) {
-            return { status: 400, message: "שגיאה: כל השדות חובה" };
-        }
+    // 2. ולידציית נוכחות: בדיקה שכל השדות מולאו
+    if (!username || !password || !email) {
+        return { status: 400, message: "שגיאה: כל השדות חובה." };
+    }
 
-        // 2. מניעת כפילויות (שם משתמש): בדיקה מול המאגר אם השם כבר תפוס
-        const existingUser = usersDB.getByProperty('username', username);
-        if (existingUser.length > 0) {
-            return { status: 409, message: "שם המשתמש הזה כבר תפוס" };
-        }
+    // 3. בדיקת פורמט אימייל (Regex)
+    // בודק שיש תווים, סימן @, ושוב תווים עם נקודה 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return { status: 400, message: "שגיאה: פורמט האימייל אינו תקין." };
+    }
 
-        // 3. מניעת כפילויות (אימייל): בדיקה מול המאגר אם המייל כבר קיים במערכת
-        const existingEmail = usersDB.getByProperty('email', email);
-        if (existingEmail.length > 0) {
-            return {
-                status: 409, // סטטוס המציין קונפליקט בנתונים
-                message: "כתובת האימייל הזו כבר רשומה במערכת"
-            };
-        }
-
-        // 4. שמירה סופית במאגר הנתונים המקומי
-        const newUser = usersDB.add({ username, password, email });
-
-        return {
-            status: 201,
-            message: "הרישום בוצע בהצלחה!",
-            data: { id: newUser.id, username: newUser.username }
+    // 4. בדיקת חוזק סיסמה (Regex)
+    // לפחות 4 תווים, לפחות אות אחת גדולה (A-Z) ולפחות מספר אחד (0-9)
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{4,}$/;
+    if (!passwordRegex.test(password)) {
+        return { 
+            status: 400, 
+            message: "הסיסמה חייבת להיות לפחות 4 תווים, לכלול אות גדולה ומספר." 
         };
     }
+
+    // 5. בדיקת ייחודיות שם משתמש
+    if (usersDB.getByProperty('username', username).length > 0) {
+        return { status: 409, message: "שם המשתמש הזה כבר תפוס." };
+    }
+
+    // 6. בדיקת ייחודיות אימייל
+    if (usersDB.getByProperty('email', email).length > 0) {
+        return { status: 409, message: "כתובת האימייל הזו כבר רשומה במערכת." };
+    }
+
+    // 7. בדיקת ייחודיות סיסמה (הדרישה המיוחדת שלך: "הכל ייחודי")
+    // בודק אם יש כבר משתמש אחר עם אותה סיסמה בדיוק
+    if (usersDB.getByProperty('password', password).length > 0) {
+        return { status: 409, message: "הסיסמה הזו כבר קיימת במערכת, בחרי סיסמה אחרת." };
+    }
+
+    // 8. אם עברנו את כל המחסומים - שמירה במאגר
+    const newUser = usersDB.add({ username, password, email });
+
+    return {
+        status: 201,
+        message: "הרישום בוצע בהצלחה!",
+        data: { id: newUser.id, username: newUser.username }
+    };
+}
 
     /**
      * כניסת משתמש: אימות פרטי זיהוי (מייל וסיסמה) מול הנתונים השמורים במאגר.
