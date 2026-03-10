@@ -75,7 +75,8 @@ class BaseComponent {
             footer.appendChild(noBtn);
         }
     }
-
+    
+// פונקציה לסגירת המודאל, משמשת גם במנגנון ה-Confirmation וגם בהודעות החיווי
     closeModal() {
         document.getElementById('custom-modal').classList.replace('modal-visible', 'modal-hidden');
     }
@@ -151,6 +152,7 @@ class TaskManager extends BaseComponent {
         }
     }
 
+    // טיפול בשינוי הסינון (בחירת קטגוריה) על ידי המשתמש
     filterByCategory(category) {
         this.currentFilter = category;
         this.fetchTasks(); // שליפה מחדש ורינדור לפי הפילטר החדש
@@ -240,6 +242,7 @@ class TaskManager extends BaseComponent {
         });
     }
 
+// טיפול בעדכון משימה דרך טופס העריכה במודאל
     handleUpdateTask(e) {
         e.preventDefault();
         // הפיכת נתוני הטופס לאובייקט JavaScript פשוט
@@ -269,11 +272,13 @@ class TaskManager extends BaseComponent {
         });
     }
 
+// טיפול בשינוי מצב הביצוע של משימה (Checked/Unchecked) דרך ה-Checkbox
     handleToggle(id, done) {
         // עדכון מצב הביצוע (Checked/Unchecked) של המשימה בשרת
         this.sendRequest("POST", "/tasks/toggle", { id, completed: done, userId: this.currentUser.id }, () => this.fetchTasks());
     }
 
+// טיפול בהוספת משימה חדשה דרך טופס הוספה
     handleAddTask(e) {
         e.preventDefault();
         const data = Object.fromEntries(new FormData(e.target).entries());
@@ -291,6 +296,7 @@ class TaskManager extends BaseComponent {
 class AuthManager extends BaseComponent {
     constructor(mainApp) { super(); this.mainApp = mainApp; }
 
+// אתחול מאזינים לטפסי הכניסה והרישום
     initEventListeners(tid) {
         const type = tid === 'register-template' ? 'register' : 'login';
         const form = document.getElementById(`${type}-form`);
@@ -299,6 +305,7 @@ class AuthManager extends BaseComponent {
         }
     }
 
+// טיפול משותף לשני הטפסים (כניסה ורישום) עם הפרדה לוגית לפי סוג הפעולה
     handleSubmit(e, type) {
         e.preventDefault();
         const data = Object.fromEntries(new FormData(e.target).entries());
