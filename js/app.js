@@ -65,7 +65,6 @@ class BaseComponent {
                 if (onConfirm) onConfirm(); // הפעלת הפעולה שהועברה (למשל מחיקה)
                 this.closeModal();
             };
-
             const noBtn = document.createElement('button');
             noBtn.innerText = 'ביטול';
             noBtn.className = 'cancel-btn';
@@ -311,6 +310,7 @@ class AuthManager extends BaseComponent {
         const data = Object.fromEntries(new FormData(e.target).entries());
 
         this.sendRequest("POST", `/auth/${type}`, data, (res, status) => {
+           //הסטטוסים התקינים של הרשת הם בין 200 ל-299, כל דבר אחר נחשב לשגיאה
             if (status < 300) {
                 if (type === 'login') {
                     this.mainApp.currentUser = res.data;
